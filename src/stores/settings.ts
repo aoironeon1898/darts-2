@@ -5,7 +5,7 @@ import {
   DEFAULT_ROUNDS_PER_PLAYER,
   DEFAULT_TIMED_GAME_TITLE,
 } from '@/config'
-import type { GameKind, Settings } from '@/types'
+import type { GameKind, LeaderboardView, Settings } from '@/types'
 
 export const useSettingsStore = defineStore('settings', {
   state: (): Settings => ({
@@ -14,6 +14,7 @@ export const useSettingsStore = defineStore('settings', {
     attemptsPerPlayer: DEFAULT_ATTEMPTS_PER_PLAYER,
     timedGameTitle: DEFAULT_TIMED_GAME_TITLE,
     activeGame: 'darts',
+    leaderboardView: 'both',
   }),
   actions: {
     setCompetitionTitle(title: string) {
@@ -35,6 +36,9 @@ export const useSettingsStore = defineStore('settings', {
     setActiveGame(game: GameKind) {
       this.activeGame = game
     },
+    setLeaderboardView(view: LeaderboardView) {
+      this.leaderboardView = view
+    },
     /** Replaces the whole settings object, e.g. from an import or sync message. Validates shape defensively. */
     replaceAll(settings: Partial<Settings>) {
       if (typeof settings.competitionTitle === 'string' && settings.competitionTitle.trim()) {
@@ -52,6 +56,13 @@ export const useSettingsStore = defineStore('settings', {
       if (settings.activeGame === 'darts' || settings.activeGame === 'timed') {
         this.activeGame = settings.activeGame
       }
+      if (
+        settings.leaderboardView === 'darts' ||
+        settings.leaderboardView === 'timed' ||
+        settings.leaderboardView === 'both'
+      ) {
+        this.leaderboardView = settings.leaderboardView
+      }
     },
     resetToDefaults() {
       this.roundsPerPlayer = DEFAULT_ROUNDS_PER_PLAYER
@@ -59,6 +70,7 @@ export const useSettingsStore = defineStore('settings', {
       this.attemptsPerPlayer = DEFAULT_ATTEMPTS_PER_PLAYER
       this.timedGameTitle = DEFAULT_TIMED_GAME_TITLE
       this.activeGame = 'darts'
+      this.leaderboardView = 'both'
     },
   },
 })

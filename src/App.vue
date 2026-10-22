@@ -29,6 +29,7 @@ const { error: settingsError } = usePersist<Settings>({
     attemptsPerPlayer: settingsStore.attemptsPerPlayer,
     timedGameTitle: settingsStore.timedGameTitle,
     activeGame: settingsStore.activeGame,
+    leaderboardView: settingsStore.leaderboardView,
   }),
   applySnapshot: (data) => settingsStore.replaceAll(data),
   deep: false,

@@ -17,8 +17,11 @@ export interface TimedAttempt {
   ms: number | null
 }
 
-/** Which game the leaderboard and operator panel are showing. */
+/** Which game results are entered for. */
 export type GameKind = 'darts' | 'timed'
+
+/** Which leaderboard(s) the main screen shows: one game, or both side by side. */
+export type LeaderboardView = GameKind | 'both'
 
 /** A competitor in the competition. */
 export interface Player {
@@ -36,7 +39,9 @@ export interface Settings {
   competitionTitle: string
   attemptsPerPlayer: number
   timedGameTitle: string
+  /** Game the operator panel records results for. */
   activeGame: GameKind
+  leaderboardView: LeaderboardView
 }
 
 /** A player enriched with computed standings data, used for display. */

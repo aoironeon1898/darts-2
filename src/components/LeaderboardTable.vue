@@ -6,6 +6,8 @@ defineProps<{
   players: RankedPlayer[]
   roundsPerPlayer: number
   highlightedId?: string | null
+  /** Shared-layout id for the current-player marker; must differ between tables on one screen. */
+  indicatorLayoutId?: string
 }>()
 
 const emit = defineEmits<{
@@ -62,7 +64,7 @@ function rowClass(rank: number, isHighlighted: boolean): string {
             <td class="relative w-14 sm:w-18 px-3 py-2.5 text-center sm:px-4 sm:py-3">
               <motion.div
                 v-if="player.id === highlightedId"
-                layout-id="active-player-indicator"
+                :layout-id="indicatorLayoutId ?? 'active-player-indicator'"
                 class="absolute left-0 top-2 bottom-2 w-1 rounded-r-full bg-amber-400 shadow-[0_0_10px_rgba(245,158,11,0.7)]"
               />
               <div class="flex items-center justify-center">

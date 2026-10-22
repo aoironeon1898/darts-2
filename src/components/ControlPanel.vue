@@ -3,15 +3,29 @@ import { motion } from 'motion-v'
 import OperatorPanel from '@/components/OperatorPanel.vue'
 import TimedOperatorPanel from '@/components/TimedOperatorPanel.vue'
 import PlayersPanel from '@/components/PlayersPanel.vue'
+import GameSwitch from '@/components/GameSwitch.vue'
+import { useSettingsStore } from '@/stores/settings'
 import { useUiStore } from '@/stores/ui'
-import type { GameKind } from '@/types'
+import type { GameKind, LeaderboardView } from '@/types'
 
 defineProps<{
   /** Game the operator tab records results for. */
   game: GameKind
+  /** Whether to let the operator pick the game (used when both leaderboards are shown). */
+  showGameSwitch?: boolean
 }>()
 
+const settingsStore = useSettingsStore()
 const uiStore = useUiStore()
+
+const gameOptions: { value: GameKind; label: string }[] = [
+  { value: 'darts', label: '🎯 Darts' },
+  { value: 'timed', label: '⏱ Time' },
+]
+
+function selectGame(game: LeaderboardView) {
+  if (game !== 'both') settingsStore.setActiveGame(game)
+}
 </script>
 
 <template>
@@ -77,6 +91,15 @@ const uiStore = useUiStore()
     <!-- Panel Content -->
     <div class="flex-1 overflow-y-auto p-4 sm:p-5">
       <template v-if="uiStore.panelTab === 'operator'">
+        <GameSwitch
+          v-if="showGameSwitch"
+          class="mb-4"
+          :model-value="game"
+          :options="gameOptions"
+          layout-id="active-entry-game"
+          group-label="Game to record results for"
+          @update:model-value="selectGame"
+        />
         <TimedOperatorPanel v-if="game === 'timed'" />
         <OperatorPanel v-else />
       </template>

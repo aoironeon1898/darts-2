@@ -14,7 +14,7 @@ export const DARTS_PER_ROUND = 3
 export const DEFAULT_COMPETITION_TITLE = 'School Darts Championship'
 
 /** Default number of attempts each player gets in the timed game. */
-export const DEFAULT_ATTEMPTS_PER_PLAYER = 3
+export const DEFAULT_ATTEMPTS_PER_PLAYER = 1
 
 /** Default title shown on the timed-game leaderboard. */
 export const DEFAULT_TIMED_GAME_TITLE = 'Time Attack'
@@ -78,6 +78,9 @@ export const CELEBRATION_FALLBACK_TIMEOUT_MS = 8000
 
 /** Max-width class applied to the leaderboard column (header and table share this width). */
 export const LEADERBOARD_MAX_WIDTH_CLASS = 'max-w-6xl'
+
+/** Wider max-width used when the darts and time leaderboards are shown side by side. */
+export const DUAL_LEADERBOARD_MAX_WIDTH_CLASS = 'max-w-[1600px]'
 
 /** Width of the sliding operator/players control panel on wide screens. */
 export const CONTROL_PANEL_WIDTH_CLASS = 'sm:w-[440px]'

@@ -67,6 +67,7 @@ function exportJson() {
       attemptsPerPlayer: settingsStore.attemptsPerPlayer,
       timedGameTitle: settingsStore.timedGameTitle,
       activeGame: settingsStore.activeGame,
+      leaderboardView: settingsStore.leaderboardView,
     },
   }
   download('darts-scoreboard.json', JSON.stringify(data, null, 2), 'application/json')
@@ -355,8 +356,8 @@ function confirmReset() {
                 </button>
               </div>
               <p class="mt-2 text-xs text-stone-500">
-                Players are ranked by their fastest finished attempt; ties go to the faster second
-                attempt. A DNF counts as a used attempt.
+                Players are ranked by their fastest finished attempt; with more than one attempt,
+                ties go to the faster second attempt. A DNF counts as a used attempt.
               </p>
             </div>
           </div>
