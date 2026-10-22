@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
-import type { Dart, Player, Round } from '@/types'
+import type { Dart, Player, Round, TimedAttempt } from '@/types'
 import { hasReachedRoundLimit, isValidDart } from '@/domain/scoring'
+import { hasReachedAttemptLimit, isValidAttempt } from '@/domain/timing'
 
 function generateId(): string {
   return `p_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`
@@ -42,6 +43,7 @@ export const usePlayersStore = defineStore('players', {
         name: trimmedName,
         className: className?.trim() || undefined,
         rounds: [],
+        attempts: [],
       }
       this.players.push(player)
       if (this.currentPlayerId === null) this.currentPlayerId = player.id
@@ -150,6 +152,38 @@ export const usePlayersStore = defineStore('players', {
       return { ok: true }
     },
 
+    /** Records a new timed-game attempt (`null` = DNF), if valid and the attempt limit hasn't been reached. */
+    submitAttempt(playerId: string, ms: number | null, attemptsPerPlayer: number): AddPlayerResult {
+      const player = this.players.find((p) => p.id === playerId)
+      if (!player) return { ok: false, error: 'Player not found.' }
+      if (hasReachedAttemptLimit(player, attemptsPerPlayer)) {
+        return { ok: false, error: 'This player has already used all of their attempts.' }
+      }
+      if (!isValidAttempt({ ms })) return { ok: false, error: 'That time is not valid.' }
+      player.attempts.push({ ms })
+      return { ok: true }
+    },
+
+    /** Replaces an already-recorded attempt in place (used to correct a past attempt). */
+    updateAttempt(playerId: string, attemptIndex: number, ms: number | null): AddPlayerResult {
+      const player = this.players.find((p) => p.id === playerId)
+      if (!player) return { ok: false, error: 'Player not found.' }
+      const attempt = player.attempts[attemptIndex]
+      if (!attempt) return { ok: false, error: 'Attempt not found.' }
+      if (!isValidAttempt({ ms })) return { ok: false, error: 'That time is not valid.' }
+      attempt.ms = ms
+      return { ok: true }
+    },
+
+    /** Removes the most recently recorded attempt for a player. */
+    undoLastAttempt(playerId: string): AddPlayerResult {
+      const player = this.players.find((p) => p.id === playerId)
+      if (!player) return { ok: false, error: 'Player not found.' }
+      if (player.attempts.length === 0) return { ok: false, error: 'No attempts to undo.' }
+      player.attempts.pop()
+      return { ok: true }
+    },
+
     /** Wholesale replace, used by import and cross-tab sync. Validates defensively. */
     replaceAll(players: unknown) {
       if (!Array.isArray(players)) return
@@ -171,11 +205,21 @@ export const usePlayersStore = defineStore('players', {
                   !!d && typeof d.segment === 'number' && typeof d.multiplier === 'number',
               ),
             }))
+          // `attempts` is missing from data saved before the timed game existed.
+          const attempts: TimedAttempt[] = Array.isArray(p.attempts)
+            ? p.attempts
+                .filter(
+                  (a): a is TimedAttempt =>
+                    !!a && (a.ms === null || typeof a.ms === 'number') && isValidAttempt(a),
+                )
+                .map((a) => ({ ms: a.ms }))
+            : []
           sanitized.push({
             id: p.id,
             name: p.name,
             className: typeof p.className === 'string' ? p.className : undefined,
             rounds,
+            attempts,
           })
         }
       }

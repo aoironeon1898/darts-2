@@ -26,6 +26,9 @@ const { error: settingsError } = usePersist<Settings>({
   getSnapshot: () => ({
     roundsPerPlayer: settingsStore.roundsPerPlayer,
     competitionTitle: settingsStore.competitionTitle,
+    attemptsPerPlayer: settingsStore.attemptsPerPlayer,
+    timedGameTitle: settingsStore.timedGameTitle,
+    activeGame: settingsStore.activeGame,
   }),
   applySnapshot: (data) => settingsStore.replaceAll(data),
   deep: false,

@@ -4,6 +4,7 @@ import ConfirmDialog from '@/components/ConfirmDialog.vue'
 import { usePlayersStore } from '@/stores/players'
 import { useSettingsStore } from '@/stores/settings'
 import { rankPlayers } from '@/domain/scoring'
+import { attemptLabel, formatTime, rankTimedPlayers } from '@/domain/timing'
 import type { ExportedData } from '@/types'
 
 const playersStore = usePlayersStore()
@@ -11,6 +12,8 @@ const settingsStore = useSettingsStore()
 
 const titleDraft = ref(settingsStore.competitionTitle)
 const roundsDraft = ref(settingsStore.roundsPerPlayer)
+const timedTitleDraft = ref(settingsStore.timedGameTitle)
+const attemptsDraft = ref(settingsStore.attemptsPerPlayer)
 
 function saveTitle() {
   settingsStore.setCompetitionTitle(titleDraft.value)
@@ -20,6 +23,23 @@ function saveTitle() {
 function saveRounds() {
   settingsStore.setRoundsPerPlayer(Number(roundsDraft.value))
   roundsDraft.value = settingsStore.roundsPerPlayer
+}
+
+function saveTimedTitle() {
+  settingsStore.setTimedGameTitle(timedTitleDraft.value)
+  timedTitleDraft.value = settingsStore.timedGameTitle
+}
+
+function saveAttempts() {
+  settingsStore.setAttemptsPerPlayer(Number(attemptsDraft.value))
+  attemptsDraft.value = settingsStore.attemptsPerPlayer
+}
+
+function syncDrafts() {
+  titleDraft.value = settingsStore.competitionTitle
+  roundsDraft.value = settingsStore.roundsPerPlayer
+  timedTitleDraft.value = settingsStore.timedGameTitle
+  attemptsDraft.value = settingsStore.attemptsPerPlayer
 }
 
 function stepRounds(delta: number) {
@@ -39,11 +59,14 @@ function download(filename: string, content: string, mime: string) {
 
 function exportJson() {
   const data: ExportedData = {
-    version: 1,
+    version: 2,
     players: playersStore.players,
     settings: {
       roundsPerPlayer: settingsStore.roundsPerPlayer,
       competitionTitle: settingsStore.competitionTitle,
+      attemptsPerPlayer: settingsStore.attemptsPerPlayer,
+      timedGameTitle: settingsStore.timedGameTitle,
+      activeGame: settingsStore.activeGame,
     },
   }
   download('darts-scoreboard.json', JSON.stringify(data, null, 2), 'application/json')
@@ -67,6 +90,27 @@ function exportCsv() {
   ])
   const csv = [header, ...rows].map((row) => row.map(csvEscape).join(',')).join('\n')
   download('leaderboard.csv', csv, 'text/csv')
+}
+
+function exportTimesCsv() {
+  const ranked = rankTimedPlayers(playersStore.players)
+  const attemptColumns = Array.from(
+    { length: settingsStore.attemptsPerPlayer },
+    (_, i) => `Attempt ${i + 1}`,
+  )
+  const header = ['Rank', 'Name', 'Class', 'Best time', ...attemptColumns]
+  const rows = ranked.map((p) => [
+    p.bestTime === null ? '' : p.rank,
+    p.name,
+    p.className ?? '',
+    p.bestTime === null ? '' : formatTime(p.bestTime),
+    ...attemptColumns.map((_, i) => {
+      const attempt = p.attempts[i]
+      return attempt ? attemptLabel(attempt) : ''
+    }),
+  ])
+  const csv = [header, ...rows].map((row) => row.map(csvEscape).join(',')).join('\n')
+  download('time-leaderboard.csv', csv, 'text/csv')
 }
 
 const importError = ref<string | null>(null)
@@ -96,8 +140,7 @@ function onFileSelected(event: Event) {
       }
       playersStore.replaceAll(data.players)
       if (data.settings) settingsStore.replaceAll(data.settings)
-      titleDraft.value = settingsStore.competitionTitle
-      roundsDraft.value = settingsStore.roundsPerPlayer
+      syncDrafts()
       importError.value = null
       importSuccess.value = `Imported ${playersStore.players.length} player(s).`
     } catch (err) {
@@ -118,8 +161,7 @@ const showResetConfirm = ref(false)
 function confirmReset() {
   playersStore.resetAll()
   settingsStore.resetToDefaults()
-  titleDraft.value = settingsStore.competitionTitle
-  roundsDraft.value = settingsStore.roundsPerPlayer
+  syncDrafts()
   showResetConfirm.value = false
 }
 </script>
@@ -259,6 +301,67 @@ function confirmReset() {
           </div>
         </section>
 
+        <!-- Section: Timed Game -->
+        <section
+          class="rounded-2xl border border-white/10 bg-white/[0.03] p-5 sm:p-6 backdrop-blur-xl shadow-[0_4px_24px_rgba(0,0,0,0.25)]"
+        >
+          <h2
+            class="mb-4 text-xs font-semibold tracking-wider text-stone-400 uppercase select-none"
+          >
+            Timed game
+          </h2>
+
+          <div class="space-y-4">
+            <div>
+              <label class="mb-1.5 block text-xs font-medium text-stone-300"
+                >Time leaderboard title</label
+              >
+              <div class="flex gap-2">
+                <input
+                  v-model="timedTitleDraft"
+                  type="text"
+                  class="min-w-0 flex-1 rounded-xl border border-white/10 bg-white/[0.05] px-3.5 py-2 text-sm text-stone-100 placeholder:text-stone-500 focus:outline-none focus:border-amber-400/80 focus:ring-2 focus:ring-amber-400/20 transition-all"
+                  @keyup.enter="saveTimedTitle"
+                />
+                <button
+                  type="button"
+                  class="rounded-xl bg-amber-400 px-4 py-2 text-sm font-semibold text-stone-950 hover:bg-amber-300 active:scale-95 transition-all shadow-sm"
+                  @click="saveTimedTitle"
+                >
+                  Save
+                </button>
+              </div>
+            </div>
+
+            <div>
+              <label class="mb-1.5 block text-xs font-medium text-stone-300"
+                >Attempts per player</label
+              >
+              <div class="flex items-center gap-2">
+                <input
+                  v-model.number="attemptsDraft"
+                  type="number"
+                  min="1"
+                  max="20"
+                  class="w-20 rounded-xl border border-white/10 bg-white/[0.05] px-3.5 py-2 text-sm font-semibold tabular-nums text-stone-100 focus:outline-none focus:border-amber-400/80 focus:ring-2 focus:ring-amber-400/20 transition-all"
+                  @keyup.enter="saveAttempts"
+                />
+                <button
+                  type="button"
+                  class="rounded-xl bg-amber-400 px-4 py-2 text-sm font-semibold text-stone-950 hover:bg-amber-300 active:scale-95 transition-all shadow-sm"
+                  @click="saveAttempts"
+                >
+                  Save
+                </button>
+              </div>
+              <p class="mt-2 text-xs text-stone-500">
+                Players are ranked by their fastest finished attempt; ties go to the faster second
+                attempt. A DNF counts as a used attempt.
+              </p>
+            </div>
+          </div>
+        </section>
+
         <!-- Section: Data Management -->
         <section
           class="rounded-2xl border border-white/10 bg-white/[0.03] p-5 sm:p-6 backdrop-blur-xl shadow-[0_4px_24px_rgba(0,0,0,0.25)]"
@@ -282,6 +385,13 @@ function confirmReset() {
               @click="exportCsv"
             >
               Export Leaderboard CSV
+            </button>
+            <button
+              type="button"
+              class="rounded-xl border border-white/10 bg-white/[0.06] px-4 py-2 text-xs sm:text-sm font-semibold text-stone-200 hover:bg-white/[0.12] hover:text-white active:scale-95 transition-all shadow-sm"
+              @click="exportTimesCsv"
+            >
+              Export Time Leaderboard CSV
             </button>
             <button
               type="button"
@@ -320,7 +430,8 @@ function confirmReset() {
             Danger Zone
           </h2>
           <p class="mb-4 text-xs text-stone-400">
-            Permanently clear all saved tournament state, player rosters, and historical rounds.
+            Permanently clear all saved tournament state, player rosters, historical rounds, and
+            timed attempts.
           </p>
           <button
             type="button"
@@ -336,7 +447,7 @@ function confirmReset() {
     <ConfirmDialog
       :open="showResetConfirm"
       title="Reset all data?"
-      message="This permanently deletes every player, round, and setting. This cannot be undone."
+      message="This permanently deletes every player, round, attempt, and setting. This cannot be undone."
       confirm-label="Reset"
       danger
       @confirm="confirmReset"

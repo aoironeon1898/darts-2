@@ -23,7 +23,13 @@ function round(...darts: Dart[]): Round {
 }
 
 function player(rounds: Round[], overrides: Partial<Player> = {}): Player {
-  return { id: overrides.id ?? 'p1', name: overrides.name ?? 'Player', rounds, ...overrides }
+  return {
+    id: overrides.id ?? 'p1',
+    name: overrides.name ?? 'Player',
+    rounds,
+    attempts: [],
+    ...overrides,
+  }
 }
 
 describe('isValidDart', () => {

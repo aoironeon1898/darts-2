@@ -1,8 +1,15 @@
 <script setup lang="ts">
 import { motion } from 'motion-v'
 import OperatorPanel from '@/components/OperatorPanel.vue'
+import TimedOperatorPanel from '@/components/TimedOperatorPanel.vue'
 import PlayersPanel from '@/components/PlayersPanel.vue'
 import { useUiStore } from '@/stores/ui'
+import type { GameKind } from '@/types'
+
+defineProps<{
+  /** Game the operator tab records results for. */
+  game: GameKind
+}>()
 
 const uiStore = useUiStore()
 </script>
@@ -33,7 +40,7 @@ const uiStore = useUiStore()
             :transition="{ type: 'spring', stiffness: 420, damping: 32 }"
             class="absolute inset-0 rounded-lg bg-amber-400 shadow-sm ring-1 ring-amber-300/40"
           />
-          <span class="relative z-10">🎯 Operator</span>
+          <span class="relative z-10">{{ game === 'timed' ? '⏱' : '🎯' }} Operator</span>
         </button>
         <button
           type="button"
@@ -69,7 +76,10 @@ const uiStore = useUiStore()
 
     <!-- Panel Content -->
     <div class="flex-1 overflow-y-auto p-4 sm:p-5">
-      <OperatorPanel v-if="uiStore.panelTab === 'operator'" />
+      <template v-if="uiStore.panelTab === 'operator'">
+        <TimedOperatorPanel v-if="game === 'timed'" />
+        <OperatorPanel v-else />
+      </template>
       <PlayersPanel v-else />
     </div>
   </div>

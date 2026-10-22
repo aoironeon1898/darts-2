@@ -15,6 +15,7 @@ declare module 'vue' {
     ConfirmDialog: typeof import('./src/components/ConfirmDialog.vue')['default']
     ControlPanel: typeof import('./src/components/ControlPanel.vue')['default']
     DartKeypad: typeof import('./src/components/DartKeypad.vue')['default']
+    GameSwitch: typeof import('./src/components/GameSwitch.vue')['default']
     LeaderboardTable: typeof import('./src/components/LeaderboardTable.vue')['default']
     OperatorPanel: typeof import('./src/components/OperatorPanel.vue')['default']
     PlayerSearch: typeof import('./src/components/PlayerSearch.vue')['default']
@@ -23,5 +24,8 @@ declare module 'vue' {
     RoundEditor: typeof import('./src/components/RoundEditor.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
+    TimedOperatorPanel: typeof import('./src/components/TimedOperatorPanel.vue')['default']
+    TimeEntry: typeof import('./src/components/TimeEntry.vue')['default']
+    TimeLeaderboardTable: typeof import('./src/components/TimeLeaderboardTable.vue')['default']
   }
 }

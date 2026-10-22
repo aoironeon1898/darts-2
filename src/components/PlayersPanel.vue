@@ -242,7 +242,7 @@ const filteredPlayers = computed(() => {
                 {{ player.className }}
               </span>
               <span class="shrink-0 text-[11px] tabular-nums text-stone-400">
-                ({{ player.rounds.length }} rounds)
+                ({{ player.rounds.length }} rounds, {{ player.attempts.length }} attempts)
               </span>
             </button>
 
@@ -272,7 +272,7 @@ const filteredPlayers = computed(() => {
     <ConfirmDialog
       :open="deleteCandidate !== null"
       title="Delete player?"
-      :message="`This permanently removes ${deleteCandidate?.name ?? ''} and all of their rounds.`"
+      :message="`This permanently removes ${deleteCandidate?.name ?? ''} and all of their rounds and attempts.`"
       confirm-label="Delete"
       danger
       @confirm="confirmDelete"

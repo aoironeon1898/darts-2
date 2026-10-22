@@ -13,6 +13,15 @@ export const DARTS_PER_ROUND = 3
 /** Default competition title shown on the leaderboard. */
 export const DEFAULT_COMPETITION_TITLE = 'School Darts Championship'
 
+/** Default number of attempts each player gets in the timed game. */
+export const DEFAULT_ATTEMPTS_PER_PLAYER = 3
+
+/** Default title shown on the timed-game leaderboard. */
+export const DEFAULT_TIMED_GAME_TITLE = 'Time Attack'
+
+/** Upper bound for a recorded time (just under 100 minutes), to reject typos. */
+export const MAX_TIME_MS = 100 * 60 * 1000 - 1
+
 /** Valid dart segments: 1-20, 25 (bull), 0 (miss). */
 export const VALID_SEGMENTS = [0, 25, ...Array.from({ length: 20 }, (_, i) => i + 1)]
 
